@@ -1,5 +1,4 @@
-const { ObjectId } = require('mongoose').Types;
-const { Student, Course, User } = require('../models');
+const { User } = require('../models');
 
 module.exports = {
   // Get all students
@@ -17,7 +16,7 @@ module.exports = {
       });
   },
   getSingleUser(req, res) {
-    User.findOne({ id: req.params.studentId })
+    User.findOne({ id: req.params.userId })
       .select('-__v')
       .then((course) =>
         !course
@@ -34,7 +33,7 @@ module.exports = {
   },
   // Delete a student and remove them from the course
   deleteUser(req, res) {
-    User.findOneAndRemove({ id: req.params.studentId},
+    User.findOneAndRemove({ id: req.params.userId},
       (err, result) => {
         if (result) {
           res.status(200).json(result);
@@ -47,38 +46,68 @@ module.exports = {
     );
   },
 
-  // Add an assignment to a student
-  addAssignment(req, res) {
-    console.log('You are adding an assignment');
-    console.log(req.body);
-    Student.findOneAndUpdate(
-      { _id: req.params.studentId },
-      { $addToSet: { assignments: req.body } },
-      { runValidators: true, new: true }
-    )
-      .then((student) =>
-        !student
-          ? res
-              .status(404)
-              .json({ message: 'No student found with that ID :(' })
-          : res.json(student)
-      )
-      .catch((err) => res.status(500).json(err));
+// Finds the first document with the name with the value equal to 'Kids' and updates that name to the provided URL param value
+updateUser(req, res) {
+  // Uses findOneAndUpdate() method on model
+  User.findOneAndUpdate(
+    // Finds first document with name of "Kids"
+    { id: req.params.userId },
+    // Replaces name with value in URL param
+    { $set: req.body },
+    // Sets to true so updated document is returned; Otherwise original document will be returned
+    { new: true },
+    (err, result) => {
+      if (result) {
+        res.status(200).json(result);
+        console.log(`Updated: ${result}`);
+      } else {
+        console.log('Uh Oh, something went wrong');
+        res.status(500).json({ message: 'something went wrong' });
+      }
+    }
+  );
   },
-  // Remove assignment from a student
-  removeAssignment(req, res) {
-    Student.findOneAndUpdate(
-      { _id: req.params.studentId },
-      { $pull: { assignment: { assignmentId: req.params.assignmentId } } },
-      { runValidators: true, new: true }
-    )
-      .then((student) =>
-        !student
-          ? res
-              .status(404)
-              .json({ message: 'No student found with that ID :(' })
-          : res.json(student)
-      )
-      .catch((err) => res.status(500).json(err));
+  addNewFriend(req, res) {
+    User.findOneAndUpdate(
+      // Finds first document with name of "Kids"
+      { id: req.params.userId },
+      // Replaces name with value in URL param
+      
+      { $addToSet: { friends: req.params.friendId} },
+      // Sets to true so updated document is returned; Otherwise original document will be returned
+      { new: true },
+      (err, result) => {
+        if (result) {
+          res.status(200).json(result);
+          console.log(`Updated: ${result}`);
+        } else {
+          console.log('Uh Oh, something went wrong');
+          res.status(500).json({ message: 'something went wrong' });
+        }
+      }
+    );
   },
+
+  deleteFriendById(req, res) {
+    User.findOneAndUpdate(
+      // Finds first document with name of "Kids"
+      { id: req.params.userId },
+      // Replaces name with value in URL param
+      
+      { $pull: { friends: req.params.friendId} },
+      // Sets to true so updated document is returned; Otherwise original document will be returned
+      { new: true },
+      (err, result) => {
+        if (result) {
+          res.status(200).json(result);
+          console.log(`Updated: ${result}`);
+        } else {
+          console.log('Uh Oh, something went wrong');
+          res.status(500).json({ message: 'something went wrong' });
+        }
+      }
+    );
+  },
+
+
 };
