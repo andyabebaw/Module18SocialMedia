@@ -1,5 +1,5 @@
 const { Thought } = require('../models');
-
+var ObjectId = require('mongodb').ObjectID;
 module.exports = {
   // Get all students
   getThoughts(req, res) {
@@ -15,13 +15,14 @@ module.exports = {
         return res.status(500).json(err);
       });
   },
-  getSingleUser(req, res) {
-    User.findOne({ id: req.params.studentId })
+  getSingleThought(req, res) {
+    console.log(req.params.thoughtId),
+    Thought.findOne({_id:req.params.thoughtId})
       .select('-__v')
-      .then((course) =>
-        !course
-          ? res.status(404).json({ message: 'No course with that ID' })
-          : res.json(course)
+      .then((thought) =>
+        thought
+          ? res.json(thought)
+          : res.status(404).json({ message: 'No thought with that ID' }) 
       )
       .catch((err) => res.status(500).json(err));
   },
@@ -32,8 +33,8 @@ module.exports = {
       .catch((err) => res.status(500).json(err));
   },
   // Delete a student and remove them from the course
-  deleteUser(req, res) {
-    User.findOneAndRemove({ id: req.params.studentId},
+  deleteThought(req, res) {
+    Thought.findOneAndRemove({ id: req.params.thoughtId},
       (err, result) => {
         if (result) {
           res.status(200).json(result);
@@ -47,9 +48,9 @@ module.exports = {
   },
 
 // Finds the first document with the name with the value equal to 'Kids' and updates that name to the provided URL param value
-updateUser(req, res) {
+updateThought(req, res) {
   // Uses findOneAndUpdate() method on model
-  User.findOneAndUpdate(
+  Thought.findOneAndUpdate(
     // Finds first document with name of "Kids"
     { id: req.params.studentId },
     // Replaces name with value in URL param
@@ -67,4 +68,48 @@ updateUser(req, res) {
     }
   );
   },
+
+  addNewReaction(req, res) {
+    Thought.findOneAndUpdate(
+      // Finds first document with name of "Kids"
+      { id: req.params.thoughtId },
+      // Replaces name with value in URL param
+      
+      { $addToSet: { reactions: req.body} },
+      // Sets to true so updated document is returned; Otherwise original document will be returned
+      { new: true },
+      (err, result) => {
+        if (result) {
+          res.status(200).json(result);
+          console.log(`Updated: ${result}`);
+        } else {
+          console.log('Uh Oh, something went wrong');
+          res.status(500).json({ message: 'something went wrong' });
+        }
+      }
+    );
+  },
+
+  deleteReaction(req, res) {
+    Thought.findOneAndUpdate(
+      // Finds first document with name of "Kids"
+      { _id: req.params.thoughtId },
+      // Replaces name with value in URL param
+      
+      { $pull: { reactions: { reactionId :req.params.reactionId} }},
+      // Sets to true so updated document is returned; Otherwise original document will be returned
+      { new: true },
+      (err, result) => {
+        if (result) {
+          res.status(200).json(result);
+          console.log(`Updated: ${result}`);
+        } else {
+          console.log('Uh Oh, something went wrong');
+          res.status(500).json({ message: 'something went wrong' });
+        }
+      }
+    );
+  }
 };
+
+//delete one reaction by id

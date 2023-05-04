@@ -18,3 +18,6 @@ router.route('/:userId').get(getSingleUser).delete(deleteUser).put(updateUser);
 router.route('/:userId/friends/:friendId').post(addNewFriend).delete(deleteFriendById);
 
 module.exports = router;
+
+//find by id
+//
